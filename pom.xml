@@ -24,6 +24,7 @@
 		<module>config-service</module>
 		<module>discovery-service</module>
 		<module>gateway-service</module>
+		<module>tag-service</module>
 	</modules>
 
 	<dependencyManagement>
