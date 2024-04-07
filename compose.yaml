@@ -1,0 +1,215 @@
+services:
+  discovery-service:
+    build: ./discovery-service/
+    restart: unless-stopped
+    environment:
+      PORT: 8761
+    ports:
+      - "8761:8761"
+    networks:
+      - microservices
+
+  config-service:
+    build: ./config-service/
+    restart: unless-stopped
+    environment:
+      PORT: 9006
+      EUREKA_URI: "http://discovery-service:8761/eureka"
+      EUREKA_HOST: discovery-service
+      EUREKA_PORT: 8761
+    ports:
+      - "9006:9006"
+    networks:
+      - microservices
+    depends_on:
+      - discovery-service
+
+  gateway-service:
+    build: ./gateway-service/
+    restart: unless-stopped
+    environment:
+      PORT: 9007
+      EUREKA_HOST: discovery-service
+      EUREKA_PORT: 8761
+    ports:
+      - "9007:9007"
+    networks:
+      - microservices
+    depends_on:
+      - discovery-service
+      - config-service
+
+  post-service:
+    build: ./post-service/
+    restart: unless-stopped
+    environment:
+      PORT: 9008
+      EUREKA_HOST: discovery-service
+      EUREKA_PORT: 8761
+      POSTGRES_HOST: post-postgres
+      POSTGRES_PORT: 5433
+      POSTGRES_USER: post-user
+      POSTGRES_PASSWORD: 123123
+      POSTGRES_DB: post-user
+      KAFKA_HOST: kafka
+      KAFKA_PORT: 9094
+    ports:
+      - "9008:9008"
+    networks:
+      - microservices
+    depends_on:
+      - post-postgres
+      - discovery-service
+      - config-service
+      - kafka
+
+  tag-service:
+    build: ./tag-service/
+    restart: unless-stopped
+    environment:
+      PORT: 9009
+      EUREKA_HOST: discovery-service
+      EUREKA_PORT: 8761
+      POSTGRES_HOST: tag-postgres
+      POSTGRES_PORT: 5434
+      POSTGRES_USER: tag-user
+      POSTGRES_PASSWORD: 123123
+      POSTGRES_DB: tag-user
+    ports:
+      - "9009:9009"
+    networks:
+      - microservices
+    depends_on:
+      - tag-postgres
+      - discovery-service
+      - config-service
+
+  vote-service:
+    build: ./vote-service/
+    restart: unless-stopped
+    environment:
+      PORT: 9010
+      EUREKA_HOST: discovery-service
+      EUREKA_PORT: 8761
+      POSTGRES_HOST: vote-postgres
+      POSTGRES_PORT: 5435
+      POSTGRES_USER: vote-user
+      POSTGRES_PASSWORD: 123123
+      POSTGRES_DB: vote-user
+      KAFKA_HOST: kafka
+      KAFKA_PORT: 9094
+    ports:
+      - "9010:9010"
+    networks:
+      - microservices
+    depends_on:
+      - vote-postgres
+      - discovery-service
+      - config-service
+      - kafka
+
+  post-postgres:
+    container_name: post-postgres
+    image: postgres:alpine3.19
+    restart: unless-stopped
+    environment:
+      PGPORT: 5433
+      POSTGRES_USER: post-user
+      POSTGRES_PASSWORD: 123123
+      PGDATA: /data/postgres
+    volumes:
+      - post-postgres:/data/postgres
+    networks:
+      - microservices
+    ports:
+      - "5433:5433"
+
+  tag-postgres:
+    container_name: tag-postgres
+    image: postgres:alpine3.19
+    restart: unless-stopped
+    environment:
+      PGPORT: 5434
+      POSTGRES_USER: tag-user
+      POSTGRES_PASSWORD: 123123
+      PGDATA: /data/postgres
+    volumes:
+      - tag-postgres:/data/postgres
+    networks:
+      - microservices
+    ports:
+      - "5434:5434"
+
+  vote-postgres:
+    container_name: vote-postgres
+    image: postgres:alpine3.19
+    restart: unless-stopped
+    environment:
+      PGPORT: 5435
+      POSTGRES_USER: vote-user
+      POSTGRES_PASSWORD: 123123
+      PGDATA: /data/postgres
+    volumes:
+      - vote-postgres:/data/postgres
+    networks:
+      - microservices
+    ports:
+      - "5435:5435"
+
+  pgadmin:
+    container_name: pgadmin
+    image: dpage/pgadmin4
+    restart: unless-stopped
+    environment:
+      PGADMIN_DEFAULT_EMAIL: ${PGADMIN_DEFAULT_EMAIL:-pgadmin4@pgadmin.org}
+      PGADMIN_DEFAULT_PASSWORD: ${PGADMIN_DEFAULT_PASSWORD:-admin}
+      PGADMIN_CONFIG_SERVER_MODE: 'False'
+    volumes:
+      - pgadmin:/var/lib/pgadmin
+    networks:
+      - microservices
+    ports:
+      - "2222:80"
+
+  kafka:
+    image: bitnami/kafka:3.5.1
+    restart: unless-stopped
+    ports:
+      - "9092:9092"
+    environment:
+      # KRaft settings
+      - KAFKA_CFG_NODE_ID=0
+      - KAFKA_CFG_PROCESS_ROLES=controller,broker
+      - KAFKA_CFG_CONTROLLER_QUORUM_VOTERS=0@kafka:9093
+      # Listeners
+      - KAFKA_CFG_LISTENERS=PLAINTEXT://:9092,CONTROLLER://:9093,INTERNAL://:9094
+      - KAFKA_CFG_ADVERTISED_LISTENERS=PLAINTEXT://localhost:9092,INTERNAL://:9094
+      - KAFKA_CFG_LISTENER_SECURITY_PROTOCOL_MAP=CONTROLLER:PLAINTEXT,PLAINTEXT:PLAINTEXT,INTERNAL:PLAINTEXT
+      - KAFKA_CFG_CONTROLLER_LISTENER_NAMES=CONTROLLER
+      - KAFKA_CFG_INTER_BROKER_LISTENER_NAME=PLAINTEXT
+    networks:
+      - microservices
+
+  kafka-ui:
+    image: provectuslabs/kafka-ui:v0.7.1
+    restart: unless-stopped
+    ports:
+      - "8089:8080"
+    environment:
+      - KAFKA_CLUSTERS_0_NAME=local
+      - KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS=kafka:9094
+    depends_on:
+      - kafka
+    networks:
+      - microservices
+
+volumes:
+  post-postgres:
+  tag-postgres:
+  vote-postgres:
+  pgadmin:
+networks:
+  microservices:
+    driver: bridge
+
+  

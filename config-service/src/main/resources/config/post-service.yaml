@@ -1,0 +1,27 @@
+server:
+  port: ${PORT:9008}
+
+spring:
+  application:
+    name: post-service
+
+  datasource:
+    url: jdbc:postgresql://${POSTGRES_HOST:localhost}:${POSTGRES_PORT:5433}/${POSTGRES_DB:post-user}
+    username: ${POSTGRES_USER:post-user}
+    password: ${POSTGRES_PASSWORD:123123}
+    driver-class-name: org.postgresql.Driver
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    show-sql: true
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+        current-session-context-class: thread
+        format-sql: true
+        jdbc:
+          lob:
+            non-contextual-creation: true
+
+kafka:
+  brokers: ${KAFKA_HOST:localhost}:${KAFKA_PORT:9094}
