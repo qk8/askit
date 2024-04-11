@@ -1,6 +1,6 @@
 server:
   port: ${PORT:9009}
-  
+
 spring:
   application:
     name: tag-service
@@ -22,3 +22,7 @@ spring:
         jdbc:
           lob:
             non-contextual-creation: true
+
+redis:
+  host: ${REDIS_HOST:localhost}
+  port: ${REDIS_PORT:6379}

@@ -75,12 +75,15 @@ services:
       POSTGRES_USER: tag-user
       POSTGRES_PASSWORD: 123123
       POSTGRES_DB: tag-user
+      REDIS_HOST: tag-redis
+      REDIS_PORT: 6379
     ports:
       - "9009:9009"
     networks:
       - microservices
     depends_on:
       - tag-postgres
+      - tag-redis
       - discovery-service
       - config-service
 
@@ -163,13 +166,22 @@ services:
     environment:
       PGADMIN_DEFAULT_EMAIL: ${PGADMIN_DEFAULT_EMAIL:-pgadmin4@pgadmin.org}
       PGADMIN_DEFAULT_PASSWORD: ${PGADMIN_DEFAULT_PASSWORD:-admin}
-      PGADMIN_CONFIG_SERVER_MODE: 'False'
+      PGADMIN_CONFIG_SERVER_MODE: "False"
     volumes:
       - pgadmin:/var/lib/pgadmin
     networks:
       - microservices
     ports:
       - "2222:80"
+
+  tag-redis:
+    container_name: redis
+    image: redis:7.2.4
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    networks:
+      - microservices
 
   kafka:
     image: bitnami/kafka:3.5.1
@@ -203,6 +215,14 @@ services:
     networks:
       - microservices
 
+  redisinsight:
+    image: redislabs/redisinsight:v2
+    restart: unless-stopped
+    ports:
+      - "5540:5540"
+    networks:
+      - microservices
+
 volumes:
   post-postgres:
   tag-postgres:
@@ -211,5 +231,3 @@ volumes:
 networks:
   microservices:
     driver: bridge
-
-  
