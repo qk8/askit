@@ -25,3 +25,10 @@ spring:
 
 kafka:
   brokers: ${KAFKA_HOST:localhost}:${KAFKA_PORT:9094}
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include:
+          - prometheus

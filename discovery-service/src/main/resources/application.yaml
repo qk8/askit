@@ -1,11 +1,18 @@
 server:
   port: ${PORT:8761}
-  
+
 spring:
   application:
     name: discovery-server
-    
+
 eureka:
   client:
     registerWithEureka: false
     fetchRegistry: false
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include:
+          - prometheus

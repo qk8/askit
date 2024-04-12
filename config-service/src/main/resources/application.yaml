@@ -18,3 +18,10 @@ eureka:
       defaultZone: http://${EUREKA_HOST:localhost}:${EUREKA_PORT:8761}/eureka/
     register-with-eureka: true
     fetch-registry: true
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include:
+          - prometheus

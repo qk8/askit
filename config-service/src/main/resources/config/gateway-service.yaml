@@ -22,3 +22,10 @@ spring:
           uri: lb://VOTE-SERVICE
           predicates:
             - Path=/votes/**
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include:
+          - prometheus

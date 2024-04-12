@@ -223,6 +223,35 @@ services:
     networks:
       - microservices
 
+  prometheus:
+    image: bitnami/prometheus:2.51.2
+    container_name: prometheus
+    restart: unless-stopped
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./monitoring/prometheus/prometheus.yaml:/etc/prometheus.yaml
+    command:
+      - "--config.file=/etc/prometheus.yaml"
+    networks:
+      - microservices
+
+  grafana:
+    image: grafana/grafana-oss:10.4.2
+    container_name: grafana
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./monitoring/grafana/provisioning:/etc/grafana/provisioning
+    environment:
+      GF_SECURITY_ADMIN_USER: admin
+      GF_SECURITY_ADMIN_PASSWORD: admin
+    networks:
+      - microservices
+    depends_on:
+      - prometheus
+
 volumes:
   post-postgres:
   tag-postgres:
